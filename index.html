@@ -16,11 +16,11 @@
     <style>
         :root {
             /* Theme Color Palette */
-            --dark-purple: #4a3267;     /* Main headers, brand, primary buttons */
-            --primary-rose: #d8638a;    /* Primary actions, active highlights */
-            --pink-accent: #f7b9c4;     /* Light accents, badges, hover fills */
-            --bg-page: #f3d9e5;         /* Body background */
-            --bg-accent: #c6bade;       /* Input backgrounds, tags, muted buttons */
+            --dark-purple: #4a3267;
+            --primary-rose: #d8638a;
+            --pink-accent: #f7b9c4;
+            --bg-page: #f3d9e5;
+            --bg-accent: #c6bade;
             
             --white: #ffffff;
             --text: #2a1b3d;
@@ -160,7 +160,7 @@
             font-size: 14px;
         }
 
-        /* Statistics Cards - Now Clickable */
+        /* Statistics Cards */
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -642,7 +642,7 @@
                 </div>
                 <div>
                     <h1>Acadly</h1>
-                    <p>Your Study, Your Plan.</p>
+                    <p>Study Smarter with Acadly</p>
                 </div>
             </div>
             <div class="date-label" id="todayDate"></div>
@@ -825,406 +825,445 @@
         </div>
 
         <footer class="footer">
-            Made for students, with 💜 by Edelyn, Angel, & Darlene | Acadly © <span id="year"></span>
+            Made for students, with 💜 by Edelyn, Angel, Darlene | Acadly © <span id="year"></span>
         </footer>
     </div>
 
-    <!-- Complete JavaScript Application Logic -->
+    <!-- Object-Oriented JavaScript Implementation -->
     <script>
-        const STORAGE_KEY = "acadly_tasks_v1";
+        // 1. Task Class (Encapsulates task data & behavior)
+        class Task {
+            constructor({ id, title, description, category, priority, deadline, time, completed, createdAt }) {
+                this.id = id || Date.now().toString();
+                this.title = title;
+                this.description = description || "";
+                this.category = category || "Assignment";
+                this.priority = priority || "Medium";
+                this.deadline = deadline;
+                this.time = time || "";
+                this.completed = completed || false;
+                this.createdAt = createdAt || Date.now();
+            }
 
-        let tasks = loadTasks();
-        let currentFilter = "all";
-        let categoryChartInstance = null;
+            isOverdue() {
+                if (this.completed || !this.deadline) return false;
+                const now = new Date();
+                const deadlineStr = this.time ? `${this.deadline}T${this.time}` : `${this.deadline}T23:59:59`;
+                return new Date(deadlineStr) < now;
+            }
 
-        // DOM Elements
-        const taskForm = document.getElementById("taskForm");
-        const taskIdInput = document.getElementById("taskId");
-        const taskTitleInput = document.getElementById("taskTitle");
-        const taskDescInput = document.getElementById("taskDescription");
-        const taskCategoryInput = document.getElementById("taskCategory");
-        const taskPriorityInput = document.getElementById("taskPriority");
-        const taskDateInput = document.getElementById("taskDate");
-        const taskTimeInput = document.getElementById("taskTime");
-        const submitBtn = document.getElementById("submitBtn");
-        const cancelBtn = document.getElementById("cancelBtn");
-        const formHeading = document.getElementById("formHeading");
+            toggleCompletion() {
+                this.completed = !this.completed;
+            }
+        }
 
-        const taskListEl = document.getElementById("taskList");
-        const searchInput = document.getElementById("searchInput");
-        const sortSelect = document.getElementById("sortSelect");
-        const filterBtns = document.querySelectorAll(".filter-btn");
-        const statCards = document.querySelectorAll(".stat-card");
+        // 2. TaskManager Class (Encapsulates data operations & state storage)
+        class TaskManager {
+            constructor(storageKey) {
+                this.storageKey = storageKey;
+                this.tasks = this.loadTasks();
+            }
 
-        // Initialization
-        document.addEventListener("DOMContentLoaded", () => {
-            setupHeaderDate();
-            setupTabNavigation();
-            renderApp();
+            loadTasks() {
+                try {
+                    const stored = localStorage.getItem(this.storageKey);
+                    if (stored) {
+                        return JSON.parse(stored).map(t => new Task(t));
+                    }
+                } catch (e) {
+                    console.error("Error loading tasks", e);
+                }
+                return this.getSampleTasks();
+            }
 
-            // Event Listeners
-            taskForm.addEventListener("submit", handleFormSubmit);
-            cancelBtn.addEventListener("click", resetForm);
-            searchInput.addEventListener("input", renderTasks);
-            sortSelect.addEventListener("change", renderTasks);
+            saveTasks() {
+                localStorage.setItem(this.storageKey, JSON.stringify(this.tasks));
+            }
 
-            // Filter button clicks
-            filterBtns.forEach(btn => {
-                btn.addEventListener("click", (e) => {
-                    setActiveFilter(e.target.dataset.filter);
+            getSampleTasks() {
+                const today = new Date().toISOString().split("T")[0];
+                return [
+                    new Task({
+                        id: "1",
+                        title: "Submit Literature Review Paper",
+                        description: "Final draft with APA citations for English class.",
+                        category: "Assignment",
+                        priority: "High",
+                        deadline: today,
+                        time: "23:59",
+                        completed: false
+                    }),
+                    new Task({
+                        id: "2",
+                        title: "Midterm Physics Prep",
+                        description: "Review chapters 4 to 7 and complete practice problems.",
+                        category: "Exam",
+                        priority: "Medium",
+                        deadline: today,
+                        time: "14:00",
+                        completed: true
+                    })
+                ];
+            }
+
+            addTask(taskData) {
+                const newTask = new Task(taskData);
+                this.tasks.push(newTask);
+                this.saveTasks();
+                return newTask;
+            }
+
+            updateTask(id, taskData) {
+                const index = this.tasks.findIndex(t => t.id === id);
+                if (index !== -1) {
+                    this.tasks[index] = new Task({ ...this.tasks[index], ...taskData, id });
+                    this.saveTasks();
+                }
+            }
+
+            deleteTask(id) {
+                this.tasks = this.tasks.filter(t => t.id !== id);
+                this.saveTasks();
+            }
+
+            toggleTaskStatus(id) {
+                const task = this.tasks.find(t => t.id === id);
+                if (task) {
+                    task.toggleCompletion();
+                    this.saveTasks();
+                }
+            }
+
+            getStats() {
+                const total = this.tasks.length;
+                const completed = this.tasks.filter(t => t.completed).length;
+                const overdue = this.tasks.filter(t => t.isOverdue()).length;
+                const pending = total - completed;
+                return { total, completed, overdue, pending };
+            }
+
+            getFilteredAndSortedTasks(filter, searchQuery, sortVal) {
+                let filtered = [...this.tasks];
+
+                // Search query
+                if (searchQuery) {
+                    const query = searchQuery.toLowerCase().trim();
+                    filtered = filtered.filter(t => 
+                        t.title.toLowerCase().includes(query) || 
+                        t.description.toLowerCase().includes(query) ||
+                        t.category.toLowerCase().includes(query)
+                    );
+                }
+
+                // Filter tabs/cards
+                if (filter === "pending") filtered = filtered.filter(t => !t.completed && !t.isOverdue());
+                else if (filter === "completed") filtered = filtered.filter(t => t.completed);
+                else if (filter === "overdue") filtered = filtered.filter(t => t.isOverdue());
+
+                // Sorting
+                filtered.sort((a, b) => {
+                    if (sortVal === "deadline") return new Date(a.deadline) - new Date(b.deadline);
+                    if (sortVal === "priority") {
+                        const map = { High: 3, Medium: 2, Low: 1 };
+                        return map[b.priority] - map[a.priority];
+                    }
+                    if (sortVal === "newest") return b.createdAt - a.createdAt;
+                    if (sortVal === "oldest") return a.createdAt - b.createdAt;
+                    if (sortVal === "title") return a.title.localeCompare(b.title);
+                    return 0;
                 });
-            });
 
-            // Clickable Stat Cards Logic
-            statCards.forEach(card => {
-                card.addEventListener("click", () => {
-                    const filterType = card.getAttribute("data-filter");
-                    
-                    // Switch to Task Planner view tab automatically
-                    document.querySelectorAll(".tab-btn").forEach(t => t.classList.remove("active"));
-                    document.querySelectorAll(".view-content").forEach(v => v.classList.remove("active"));
+                return filtered;
+            }
+        }
 
-                    document.querySelector('[data-view="tasksView"]').classList.add("active");
-                    document.getElementById("tasksView").classList.add("active");
+        // 3. AcadlyUI Class (Encapsulates User Interface and DOM manipulation)
+        class AcadlyUI {
+            constructor(taskManager) {
+                this.taskManager = taskManager;
+                this.currentFilter = "all";
+                this.categoryChartInstance = null;
 
-                    // Apply filter
-                    setActiveFilter(filterType);
+                this.initElements();
+                this.initEventListeners();
+                this.render();
+            }
+
+            initElements() {
+                this.taskForm = document.getElementById("taskForm");
+                this.taskIdInput = document.getElementById("taskId");
+                this.taskTitleInput = document.getElementById("taskTitle");
+                this.taskDescInput = document.getElementById("taskDescription");
+                this.taskCategoryInput = document.getElementById("taskCategory");
+                this.taskPriorityInput = document.getElementById("taskPriority");
+                this.taskDateInput = document.getElementById("taskDate");
+                this.taskTimeInput = document.getElementById("taskTime");
+                this.submitBtn = document.getElementById("submitBtn");
+                this.cancelBtn = document.getElementById("cancelBtn");
+                this.formHeading = document.getElementById("formHeading");
+
+                this.taskListEl = document.getElementById("taskList");
+                this.searchInput = document.getElementById("searchInput");
+                this.sortSelect = document.getElementById("sortSelect");
+                this.filterBtns = document.querySelectorAll(".filter-btn");
+                this.statCards = document.querySelectorAll(".stat-card");
+            }
+
+            initEventListeners() {
+                document.getElementById("todayDate").textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+                document.getElementById("year").textContent = new Date().getFullYear();
+
+                // Tab navigation
+                document.querySelectorAll(".tab-btn").forEach(tab => {
+                    tab.addEventListener("click", (e) => {
+                        document.querySelectorAll(".tab-btn").forEach(t => t.classList.remove("active"));
+                        document.querySelectorAll(".view-content").forEach(v => v.classList.remove("active"));
+
+                        tab.classList.add("active");
+                        const targetView = document.getElementById(tab.dataset.view);
+                        if (targetView) targetView.classList.add("active");
+
+                        if (tab.dataset.view === "dashboardView") {
+                            this.renderDashboardChart();
+                        }
+                    });
                 });
-            });
-        });
 
-        function setActiveFilter(filterName) {
-            currentFilter = filterName;
-            filterBtns.forEach(b => {
-                if (b.dataset.filter === filterName) {
-                    b.classList.add("active");
+                this.taskForm.addEventListener("submit", (e) => this.handleFormSubmit(e));
+                this.cancelBtn.addEventListener("click", () => this.resetForm());
+                this.searchInput.addEventListener("input", () => this.renderTasks());
+                this.sortSelect.addEventListener("change", () => this.renderTasks());
+
+                this.filterBtns.forEach(btn => {
+                    btn.addEventListener("click", (e) => {
+                        this.setFilter(e.target.dataset.filter);
+                    });
+                });
+
+                this.statCards.forEach(card => {
+                    card.addEventListener("click", () => {
+                        const filterType = card.getAttribute("data-filter");
+                        document.querySelector('[data-view="tasksView"]').click();
+                        this.setFilter(filterType);
+                    });
+                });
+            }
+
+            setFilter(filterName) {
+                this.currentFilter = filterName;
+                this.filterBtns.forEach(b => {
+                    if (b.dataset.filter === filterName) b.classList.add("active");
+                    else b.classList.remove("active");
+                });
+                this.renderTasks();
+            }
+
+            handleFormSubmit(e) {
+                e.preventDefault();
+                const id = this.taskIdInput.value;
+                const taskData = {
+                    title: this.taskTitleInput.value.trim(),
+                    description: this.taskDescInput.value.trim(),
+                    category: this.taskCategoryInput.value,
+                    priority: this.taskPriorityInput.value,
+                    deadline: this.taskDateInput.value,
+                    time: this.taskTimeInput.value
+                };
+
+                if (id) {
+                    this.taskManager.updateTask(id, taskData);
                 } else {
-                    b.classList.remove("active");
+                    this.taskManager.addTask(taskData);
                 }
-            });
-            renderTasks();
-        }
 
-        // 1. Data Storage Handlers
-        function loadTasks() {
-            try {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                return stored ? JSON.parse(stored) : getSampleTasks();
-            } catch (e) {
-                return getSampleTasks();
+                this.resetForm();
+                this.render();
             }
-        }
 
-        function saveTasks() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-        }
+            editTask(id) {
+                const task = this.taskManager.tasks.find(t => t.id === id);
+                if (!task) return;
 
-        function getSampleTasks() {
-            const today = new Date().toISOString().split("T")[0];
-            return [
-                {
-                    id: "1",
-                    title: "Submit Literature Review Paper",
-                    description: "Final draft with APA citations for English class.",
-                    category: "Assignment",
-                    priority: "High",
-                    deadline: today,
-                    time: "23:59",
-                    completed: false,
-                    createdAt: Date.now()
-                },
-                {
-                    id: "2",
-                    title: "Midterm Physics Prep",
-                    description: "Review chapters 4 to 7 and complete practice problems.",
-                    category: "Exam",
-                    priority: "Medium",
-                    deadline: today,
-                    time: "14:00",
-                    completed: true,
-                    createdAt: Date.now() - 10000
+                this.taskIdInput.value = task.id;
+                this.taskTitleInput.value = task.title;
+                this.taskDescInput.value = task.description;
+                this.taskCategoryInput.value = task.category;
+                this.taskPriorityInput.value = task.priority;
+                this.taskDateInput.value = task.deadline;
+                this.taskTimeInput.value = task.time || "";
+
+                this.formHeading.textContent = "✎ Edit Task";
+                this.submitBtn.textContent = "Update Task";
+                this.cancelBtn.hidden = false;
+
+                document.querySelector('[data-view="tasksView"]').click();
+            }
+
+            deleteTask(id) {
+                this.taskManager.deleteTask(id);
+                this.render();
+            }
+
+            toggleTaskStatus(id) {
+                this.taskManager.toggleTaskStatus(id);
+                this.render();
+            }
+
+            resetForm() {
+                this.taskIdInput.value = "";
+                this.taskForm.reset();
+                this.formHeading.textContent = "＋ Add New Task";
+                this.submitBtn.textContent = "Add Task";
+                this.cancelBtn.hidden = true;
+            }
+
+            render() {
+                this.renderStats();
+                this.renderTasks();
+                this.renderUpcomingDeadlines();
+                this.renderDashboardChart();
+            }
+
+            renderStats() {
+                const stats = this.taskManager.getStats();
+                document.getElementById("totalCount").textContent = stats.total;
+                document.getElementById("pendingCount").textContent = stats.pending;
+                document.getElementById("completedCount").textContent = stats.completed;
+                document.getElementById("overdueCount").textContent = stats.overdue;
+            }
+
+            renderTasks() {
+                const filtered = this.taskManager.getFilteredAndSortedTasks(
+                    this.currentFilter, 
+                    this.searchInput.value, 
+                    this.sortSelect.value
+                );
+
+                document.getElementById("visibleCount").textContent = `${filtered.length} task${filtered.length !== 1 ? 's' : ''}`;
+
+                if (filtered.length === 0) {
+                    this.taskListEl.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📝</div>
+                            <h3>No tasks found</h3>
+                            <p>Try adjusting your search or add a new task to get started.</p>
+                        </div>
+                    `;
+                    return;
                 }
-            ];
-        }
 
-        // 2. View Switcher Navigation
-        function setupTabNavigation() {
-            const tabs = document.querySelectorAll(".tab-btn");
-            const views = document.querySelectorAll(".view-content");
+                this.taskListEl.innerHTML = filtered.map(task => {
+                    const overdue = task.isOverdue();
+                    return `
+                        <div class="task-item ${task.completed ? 'completed' : ''}">
+                            <div class="task-top">
+                                <div class="task-title-row">
+                                    <input 
+                                        type="checkbox" 
+                                        class="task-check" 
+                                        ${task.completed ? 'checked' : ''} 
+                                        onchange="window.acadlyUI.toggleTaskStatus('${task.id}')"
+                                    >
+                                    <span class="task-title">${this.escapeHtml(task.title)}</span>
+                                </div>
+                                <div class="task-actions">
+                                    <button class="icon-btn" onclick="window.acadlyUI.editTask('${task.id}')" title="Edit">✎</button>
+                                    <button class="icon-btn delete" onclick="window.acadlyUI.deleteTask('${task.id}')" title="Delete">🗑</button>
+                                </div>
+                            </div>
 
-            tabs.forEach(tab => {
-                tab.addEventListener("click", () => {
-                    tabs.forEach(t => t.classList.remove("active"));
-                    views.forEach(v => v.classList.remove("active"));
+                            ${task.description ? `<p class="task-description">${this.escapeHtml(task.description)}</p>` : ''}
 
-                    tab.classList.add("active");
-                    const targetView = document.getElementById(tab.dataset.view);
-                    if (targetView) targetView.classList.add("active");
+                            <div class="task-meta" style="margin-top: ${task.description ? '0' : '8px'};">
+                                <span class="tag">${task.category}</span>
+                                <span class="tag priority-${task.priority}">${task.priority} Priority</span>
+                                <span class="tag ${overdue ? 'deadline-overdue' : ''}">
+                                    📅 ${task.deadline} ${task.time ? '@ ' + task.time : ''} ${overdue ? '(Overdue)' : ''}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+            }
 
-                    if (tab.dataset.view === "dashboardView") {
-                        renderDashboardChart();
+            renderUpcomingDeadlines() {
+                const listEl = document.getElementById("upcomingList");
+                const upcoming = [...this.taskManager.tasks]
+                    .filter(t => !t.completed)
+                    .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+                    .slice(0, 5);
+
+                if (upcoming.length === 0) {
+                    listEl.innerHTML = `<li class="upcoming-item"><span>All caught up! No upcoming tasks.</span></li>`;
+                    return;
+                }
+
+                listEl.innerHTML = upcoming.map(task => `
+                    <li class="upcoming-item">
+                        <div>
+                            <strong>${this.escapeHtml(task.title)}</strong>
+                            <div style="font-size: 11px; color: var(--muted);">${task.category}</div>
+                        </div>
+                        <span class="upcoming-badge">${task.deadline}</span>
+                    </li>
+                `).join("");
+            }
+
+            renderDashboardChart() {
+                const ctx = document.getElementById('categoryChart')?.getContext('2d');
+                if (!ctx) return;
+
+                const categories = ["Assignment", "Exam", "Project", "Study", "Personal", "Other"];
+                const counts = categories.map(cat => this.taskManager.tasks.filter(t => t.category === cat).length);
+
+                if (this.categoryChartInstance) {
+                    this.categoryChartInstance.destroy();
+                }
+
+                this.categoryChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: categories,
+                        datasets: [{
+                            data: counts,
+                            backgroundColor: [
+                                '#4a3267',
+                                '#d8638a',
+                                '#f7b9c4',
+                                '#c6bade',
+                                '#896c9c',
+                                '#e0a3b8'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right' }
+                        }
                     }
                 });
-            });
-        }
-
-        function setupHeaderDate() {
-            const options = { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' };
-            document.getElementById("todayDate").textContent = new Date().toLocaleDateString('en-US', options);
-            document.getElementById("year").textContent = new Date().getFullYear();
-        }
-
-        // 3. Task Management (CRUD)
-        function handleFormSubmit(e) {
-            e.preventDefault();
-
-            const id = taskIdInput.value;
-            const taskData = {
-                id: id || Date.now().toString(),
-                title: taskTitleInput.value.trim(),
-                description: taskDescInput.value.trim(),
-                category: taskCategoryInput.value,
-                priority: taskPriorityInput.value,
-                deadline: taskDateInput.value,
-                time: taskTimeInput.value,
-                completed: false,
-                createdAt: id ? (tasks.find(t => t.id === id)?.createdAt || Date.now()) : Date.now()
-            };
-
-            if (id) {
-                const index = tasks.findIndex(t => t.id === id);
-                if (index !== -1) tasks[index] = { ...tasks[index], ...taskData };
-            } else {
-                tasks.push(taskData);
             }
 
-            saveTasks();
-            resetForm();
-            renderApp();
-        }
-
-        function editTask(id) {
-            const task = tasks.find(t => t.id === id);
-            if (!task) return;
-
-            taskIdInput.value = task.id;
-            taskTitleInput.value = task.title;
-            taskDescInput.value = task.description;
-            taskCategoryInput.value = task.category;
-            taskPriorityInput.value = task.priority;
-            taskDateInput.value = task.deadline;
-            taskTimeInput.value = task.time || "";
-
-            formHeading.textContent = "✎ Edit Task";
-            submitBtn.textContent = "Update Task";
-            cancelBtn.hidden = false;
-
-            // Switch view to planner if editing from dashboard
-            document.querySelector('[data-view="tasksView"]').click();
-        }
-
-        function deleteTask(id) {
-            tasks = tasks.filter(t => t.id !== id);
-            saveTasks();
-            renderApp();
-        }
-
-        function toggleTaskStatus(id) {
-            const task = tasks.find(t => t.id === id);
-            if (task) {
-                task.completed = !task.completed;
-                saveTasks();
-                renderApp();
+            escapeHtml(str) {
+                return str.replace(/[&<>"']/g, match => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                })[match]);
             }
         }
 
-        function resetForm() {
-            taskIdInput.value = "";
-            taskForm.reset();
-            formHeading.textContent = "＋ Add New Task";
-            submitBtn.textContent = "Add Task";
-            cancelBtn.hidden = true;
-        }
-
-        // 4. Render Functions
-        function renderApp() {
-            updateStats();
-            renderTasks();
-            renderUpcomingDeadlines();
-            renderDashboardChart();
-        }
-
-        function isOverdue(task) {
-            if (task.completed || !task.deadline) return false;
-            const now = new Date();
-            const deadlineStr = task.time ? `${task.deadline}T${task.time}` : `${task.deadline}T23:59:59`;
-            return new Date(deadlineStr) < now;
-        }
-
-        function updateStats() {
-            const total = tasks.length;
-            const completed = tasks.filter(t => t.completed).length;
-            const overdue = tasks.filter(t => isOverdue(t)).length;
-            const pending = total - completed;
-
-            document.getElementById("totalCount").textContent = total;
-            document.getElementById("pendingCount").textContent = pending;
-            document.getElementById("completedCount").textContent = completed;
-            document.getElementById("overdueCount").textContent = overdue;
-        }
-
-        function renderTasks() {
-            let filtered = [...tasks];
-            const query = searchInput.value.toLowerCase().trim();
-
-            // Search Filter
-            if (query) {
-                filtered = filtered.filter(t => 
-                    t.title.toLowerCase().includes(query) || 
-                    t.description.toLowerCase().includes(query) ||
-                    t.category.toLowerCase().includes(query)
-                );
-            }
-
-            // Status Filter (triggered by clicks on cards or filter buttons)
-            if (currentFilter === "pending") filtered = filtered.filter(t => !t.completed && !isOverdue(t));
-            else if (currentFilter === "completed") filtered = filtered.filter(t => t.completed);
-            else if (currentFilter === "overdue") filtered = filtered.filter(t => isOverdue(t));
-
-            // Sorting
-            const sortVal = sortSelect.value;
-            filtered.sort((a, b) => {
-                if (sortVal === "deadline") return new Date(a.deadline) - new Date(b.deadline);
-                if (sortVal === "priority") {
-                    const map = { High: 3, Medium: 2, Low: 1 };
-                    return map[b.priority] - map[a.priority];
-                }
-                if (sortVal === "newest") return b.createdAt - a.createdAt;
-                if (sortVal === "oldest") return a.createdAt - b.createdAt;
-                if (sortVal === "title") return a.title.localeCompare(b.title);
-                return 0;
-            });
-
-            document.getElementById("visibleCount").textContent = `${filtered.length} task${filtered.length !== 1 ? 's' : ''}`;
-
-            if (filtered.length === 0) {
-                taskListEl.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📝</div>
-                        <h3>No tasks found</h3>
-                        <p>Try adjusting your search or add a new task to get started.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            taskListEl.innerHTML = filtered.map(task => {
-                const overdue = isOverdue(task);
-                return `
-                    <div class="task-item ${task.completed ? 'completed' : ''}">
-                        <div class="task-top">
-                            <div class="task-title-row">
-                                <input 
-                                    type="checkbox" 
-                                    class="task-check" 
-                                    ${task.completed ? 'checked' : ''} 
-                                    onchange="toggleTaskStatus('${task.id}')"
-                                >
-                                <span class="task-title">${escapeHtml(task.title)}</span>
-                            </div>
-                            <div class="task-actions">
-                                <button class="icon-btn" onclick="editTask('${task.id}')" title="Edit">✎</button>
-                                <button class="icon-btn delete" onclick="deleteTask('${task.id}')" title="Delete">🗑</button>
-                            </div>
-                        </div>
-
-                        ${task.description ? `<p class="task-description">${escapeHtml(task.description)}</p>` : ''}
-
-                        <div class="task-meta" style="margin-top: ${task.description ? '0' : '8px'};">
-                            <span class="tag">${task.category}</span>
-                            <span class="tag priority-${task.priority}">${task.priority} Priority</span>
-                            <span class="tag ${overdue ? 'deadline-overdue' : ''}">
-                                📅 ${task.deadline} ${task.time ? '@ ' + task.time : ''} ${overdue ? '(Overdue)' : ''}
-                            </span>
-                        </div>
-                    </div>
-                `;
-            }).join("");
-        }
-
-        function renderUpcomingDeadlines() {
-            const listEl = document.getElementById("upcomingList");
-            const upcoming = tasks
-                .filter(t => !t.completed)
-                .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
-                .slice(0, 5);
-
-            if (upcoming.length === 0) {
-                listEl.innerHTML = `<li class="upcoming-item"><span>All caught up! No upcoming tasks.</span></li>`;
-                return;
-            }
-
-            listEl.innerHTML = upcoming.map(task => `
-                <li class="upcoming-item">
-                    <div>
-                        <strong>${escapeHtml(task.title)}</strong>
-                        <div style="font-size: 11px; color: var(--muted);">${task.category}</div>
-                    </div>
-                    <span class="upcoming-badge">${task.deadline}</span>
-                </li>
-            `).join("");
-        }
-
-        // 5. Chart Visuals
-        function renderDashboardChart() {
-            const ctx = document.getElementById('categoryChart')?.getContext('2d');
-            if (!ctx) return;
-
-            const categories = ["Assignment", "Exam", "Project", "Study", "Personal", "Other"];
-            const counts = categories.map(cat => tasks.filter(t => t.category === cat).length);
-
-            if (categoryChartInstance) {
-                categoryChartInstance.destroy();
-            }
-
-            categoryChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: categories,
-                    datasets: [{
-                        data: counts,
-                        backgroundColor: [
-                            '#4a3267',
-                            '#d8638a',
-                            '#f7b9c4',
-                            '#c6bade',
-                            '#896c9c',
-                            '#e0a3b8'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right' }
-                    }
-                }
-            });
-        }
-
-        // Helper Utility
-        function escapeHtml(str) {
-            return str.replace(/[&<>"']/g, match => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            })[match]);
-        }
+        // Initialize App
+        document.addEventListener("DOMContentLoaded", () => {
+            const taskManager = new TaskManager("acadly_tasks_v2");
+            window.acadlyUI = new AcadlyUI(taskManager);
+        });
     </script>
 </body>
 </html>
