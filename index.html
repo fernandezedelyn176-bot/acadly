@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acadly | Student Dashboard & Planner</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Chart.js for Dashboard Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            /* Theme Color Palette */
+            --dark-purple: #4a3267;     /* Main headers, brand, primary buttons */
+            --primary-rose: #d8638a;    /* Primary actions, active highlights */
+            --pink-accent: #f7b9c4;     /* Light accents, badges, hover fills */
+            --bg-page: #f3d9e5;         /* Body background */
+            --bg-accent: #c6bade;       /* Input backgrounds, tags, muted buttons */
+            
+            --white: #ffffff;
+            --text: #2a1b3d;
+            --muted: #6a5a7e;
+            --border: #dfd5e8;
+            --red: #c54c4c;
+            --orange: #bd8032;
+            --green: #4e7540;
+            --shadow: 0 5px 20px rgba(74, 50, 103, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg-page);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            padding: 25px 16px;
+        }
+
+        button, input, textarea, select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .brand-icon {
+            width: 53px;
+            height: 53px;
+            border-radius: 16px;
+            background: var(--dark-purple);
+            display: grid;
+            place-items: center;
+            box-shadow: 0 4px 10px rgba(74, 50, 103, 0.15);
+        }
+
+        .brand-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--white);
+        }
+
+        .brand h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 32px;
+            line-height: 1.1;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--dark-purple);
+        }
+
+        .brand p {
+            font-size: 13px;
+            color: var(--dark-purple);
+            margin-top: 3px;
+        }
+
+        .date-label {
+            color: var(--dark-purple);
+            font-size: 14px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 22px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 18px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--muted);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            background: var(--pink-accent);
+            color: var(--dark-purple);
+        }
+
+        .tab-btn.active {
+            background: var(--dark-purple);
+            color: var(--white);
+        }
+
+        /* Welcome section */
+        .welcome {
+            margin-bottom: 22px;
+        }
+
+        .welcome h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 25px;
+            color: var(--dark-purple);
+            margin-bottom: 5px;
+        }
+
+        .welcome p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* Statistics Cards - Now Clickable */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-rose);
+            box-shadow: 0 8px 25px rgba(74, 50, 103, 0.12);
+        }
+
+        .stat-card .stat-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            background: var(--bg-page);
+            font-size: 19px;
+            margin-bottom: 13px;
+        }
+
+        .stat-card h3 {
+            font-size: 28px;
+            color: var(--dark-purple);
+            margin-bottom: 4px;
+        }
+
+        .stat-card p {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* Dashboard Specific Visuals */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+        }
+
+        .chart-box {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        .upcoming-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .upcoming-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: #faf8fc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .upcoming-item strong {
+            color: var(--dark-purple);
+        }
+
+        .upcoming-badge {
+            background: var(--pink-accent);
+            color: var(--dark-purple);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* Main Grid Layout for Task Planner */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 340px minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panel {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark-purple);
+            margin-bottom: 18px;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select,
+        .search-box input,
+        .toolbar select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: #faf8fc;
+            color: var(--text);
+            outline: none;
+            font-size: 13px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus,
+        .search-box input:focus,
+        .toolbar select:focus {
+            border-color: var(--primary-rose);
+            box-shadow: 0 0 0 3px rgba(216, 99, 138, 0.2);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 75px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 11px 15px;
+            border: none;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--dark-purple);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: #382452;
+        }
+
+        .btn-secondary {
+            background: var(--bg-accent);
+            color: var(--dark-purple);
+        }
+
+        .btn-secondary:hover {
+            background: var(--pink-accent);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 9px;
+        }
+
+        .form-actions .btn {
+            flex: 1;
+        }
+
+        /* Task Panel Toolbar & Filters */
+        .task-panel {
+            min-width: 0;
+        }
+
+        .task-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 17px;
+        }
+
+        .task-heading .panel-title {
+            margin: 0;
+        }
+
+        .task-count {
+            background: var(--pink-accent);
+            color: var(--dark-purple);
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 145px;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 35px;
+        }
+
+        .search-icon {
+            position: absolute;
+            top: 50%;
+            left: 12px;
+            transform: translateY(-50%);
+            font-size: 14px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--muted);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .filter-btn.active {
+            background: var(--primary-rose);
+            color: var(--white);
+            border-color: var(--primary-rose);
+        }
+
+        /* Task Item Styles */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-item {
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary-rose);
+            border-radius: 11px;
+            padding: 15px;
+            transition: 0.2s;
+            background: var(--white);
+        }
+
+        .task-item:hover {
+            border-color: var(--primary-rose);
+        }
+
+        .task-item.completed {
+            opacity: 0.7;
+            border-left-color: var(--bg-accent);
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+            color: var(--muted);
+        }
+
+        .task-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .task-title-row {
+            display: flex;
+            gap: 9px;
+            align-items: flex-start;
+            min-width: 0;
+        }
+
+        .task-check {
+            accent-color: var(--dark-purple);
+            width: 17px;
+            height: 17px;
+            margin-top: 3px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .task-title {
+            font-size: 15px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+            line-height: 1.4;
+            color: var(--dark-purple);
+        }
+
+        .task-description {
+            font-size: 13px;
+            color: var(--muted);
+            margin: 8px 0 12px 26px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-left: 26px;
+        }
+
+        .tag {
+            padding: 5px 8px;
+            border-radius: 6px;
+            background: var(--bg-accent);
+            color: var(--dark-purple);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .priority-High {
+            background: #fae8e5;
+            color: var(--red);
+        }
+
+        .priority-Medium {
+            background: #fff2d8;
+            color: var(--orange);
+        }
+
+        .priority-Low {
+            background: #e6f1df;
+            color: var(--green);
+        }
+
+        .deadline-overdue {
+            background: #fae8e5;
+            color: var(--red);
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            border: none;
+            background: #faf8fc;
+            border-radius: 7px;
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+
+        .icon-btn:hover {
+            background: var(--pink-accent);
+        }
+
+        .icon-btn.delete:hover {
+            background: #fae8e5;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 15px;
+            color: var(--muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 38px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            color: var(--dark-purple);
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--dark-purple);
+            font-size: 12px;
+            margin-top: 30px;
+            padding-bottom: 10px;
+        }
+
+        /* View Switching Logic */
+        .view-content {
+            display: none;
+        }
+
+        .view-content.active {
+            display: block;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 800px) {
+            .main-grid, .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 17px 10px;
+            }
+
+            .header {
+                align-items: flex-start;
+            }
+
+            .brand h1 {
+                font-size: 26px;
+            }
+
+            .date-label {
+                display: none;
+            }
+
+            .toolbar {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <!-- Application Header -->
+        <header class="header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <!-- Graduation Cap Icon -->
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3L1 9L12 15L21 10.09V17H23V9M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18Z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Acadly</h1>
+                    <p>Your Study, Your Plan.</p>
+                </div>
+            </div>
+            <div class="date-label" id="todayDate"></div>
+        </header>
+
+        <!-- View Switcher Tabs -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-view="dashboardView">📊 Dashboard</button>
+            <button class="tab-btn" data-view="tasksView">📋 Task Planner</button>
+        </nav>
+
+        <!-- Dynamic Welcome Banner -->
+        <section class="welcome">
+            <h2 id="welcomeHeading">Welcome Buddy! ✨</h2>
+            <p>Manage your school tasks, assignments, and study schedule seamlessly.</p>
+        </section>
+
+        <!-- Clickable Statistics Cards -->
+        <section class="stats">
+            <div class="stat-card" data-filter="all">
+                <div class="stat-icon">📋</div>
+                <h3 id="totalCount">0</h3>
+                <p>Total Tasks</p>
+            </div>
+            <div class="stat-card" data-filter="pending">
+                <div class="stat-icon">⏳</div>
+                <h3 id="pendingCount">0</h3>
+                <p>Pending Tasks</p>
+            </div>
+            <div class="stat-card" data-filter="completed">
+                <div class="stat-icon">🎓</div>
+                <h3 id="completedCount">0</h3>
+                <p>Completed Tasks</p>
+            </div>
+            <div class="stat-card" data-filter="overdue">
+                <div class="stat-icon">⚠️</div>
+                <h3 id="overdueCount">0</h3>
+                <p>Overdue Tasks</p>
+            </div>
+        </section>
+
+        <!-- VIEW 1: DASHBOARD VIEW -->
+        <div id="dashboardView" class="view-content active">
+            <div class="dashboard-grid">
+                <!-- Task Completion Overview (Chart) -->
+                <div class="panel">
+                    <h2 class="panel-title">Task Distribution by Category</h2>
+                    <div class="chart-box">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Upcoming Deadlines -->
+                <div class="panel">
+                    <h2 class="panel-title">Upcoming Deadlines</h2>
+                    <ul class="upcoming-list" id="upcomingList">
+                        <!-- Populated by JavaScript -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: TASK PLANNER VIEW -->
+        <div id="tasksView" class="view-content">
+            <main class="main-grid">
+
+                <!-- Add/Edit Task Panel -->
+                <section class="panel">
+                    <h2 class="panel-title" id="formHeading">＋ Add New Task</h2>
+
+                    <form id="taskForm">
+                        <input type="hidden" id="taskId">
+
+                        <div class="form-group">
+                            <label for="taskTitle">Task Title *</label>
+                            <input
+                                type="text"
+                                id="taskTitle"
+                                placeholder="e.g. Finish Research Paper"
+                                maxlength="120"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taskDescription">Description</label>
+                            <textarea
+                                id="taskDescription"
+                                placeholder="Add task details..."
+                                maxlength="1000"
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taskCategory">Category</label>
+                            <select id="taskCategory">
+                                <option value="Assignment">Assignment</option>
+                                <option value="Exam">Exam</option>
+                                <option value="Project">Project</option>
+                                <option value="Study">Study</option>
+                                <option value="Personal">Personal</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="taskPriority">Priority</label>
+                                <select id="taskPriority">
+                                    <option value="High">High</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="taskDate">Deadline *</label>
+                                <input type="date" id="taskDate" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taskTime">Deadline Time (optional)</label>
+                            <input type="time" id="taskTime">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                Add Task
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-secondary"
+                                id="cancelBtn"
+                                hidden
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Task List Panel -->
+                <section class="panel task-panel">
+                    <div class="task-heading">
+                        <h2 class="panel-title">My Tasks</h2>
+                        <span class="task-count" id="visibleCount">0 tasks</span>
+                    </div>
+
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <span class="search-icon">⌕</span>
+                            <input
+                                type="search"
+                                id="searchInput"
+                                placeholder="Search tasks..."
+                                aria-label="Search tasks"
+                            >
+                        </div>
+
+                        <select id="sortSelect" aria-label="Sort tasks">
+                            <option value="deadline">Sort: Deadline</option>
+                            <option value="priority">Sort: Priority</option>
+                            <option value="newest">Sort: Newest</option>
+                            <option value="oldest">Sort: Oldest</option>
+                            <option value="title">Sort: A–Z</option>
+                        </select>
+                    </div>
+
+                    <div class="filters" aria-label="Filter tasks">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="pending">Pending</button>
+                        <button class="filter-btn" data-filter="completed">Completed</button>
+                        <button class="filter-btn" data-filter="overdue">Overdue</button>
+                    </div>
+
+                    <div class="task-list" id="taskList"></div>
+                </section>
+            </main>
+        </div>
+
+        <footer class="footer">
+            Made for students, with 💜 by Edelyn, Angel, & Darlene | Acadly © <span id="year"></span>
+        </footer>
+    </div>
+
+    <!-- Complete JavaScript Application Logic -->
+    <script>
+        const STORAGE_KEY = "acadly_tasks_v1";
+
+        let tasks = loadTasks();
+        let currentFilter = "all";
+        let categoryChartInstance = null;
+
+        // DOM Elements
+        const taskForm = document.getElementById("taskForm");
+        const taskIdInput = document.getElementById("taskId");
+        const taskTitleInput = document.getElementById("taskTitle");
+        const taskDescInput = document.getElementById("taskDescription");
+        const taskCategoryInput = document.getElementById("taskCategory");
+        const taskPriorityInput = document.getElementById("taskPriority");
+        const taskDateInput = document.getElementById("taskDate");
+        const taskTimeInput = document.getElementById("taskTime");
+        const submitBtn = document.getElementById("submitBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+        const formHeading = document.getElementById("formHeading");
+
+        const taskListEl = document.getElementById("taskList");
+        const searchInput = document.getElementById("searchInput");
+        const sortSelect = document.getElementById("sortSelect");
+        const filterBtns = document.querySelectorAll(".filter-btn");
+        const statCards = document.querySelectorAll(".stat-card");
+
+        // Initialization
+        document.addEventListener("DOMContentLoaded", () => {
+            setupHeaderDate();
+            setupTabNavigation();
+            renderApp();
+
+            // Event Listeners
+            taskForm.addEventListener("submit", handleFormSubmit);
+            cancelBtn.addEventListener("click", resetForm);
+            searchInput.addEventListener("input", renderTasks);
+            sortSelect.addEventListener("change", renderTasks);
+
+            // Filter button clicks
+            filterBtns.forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    setActiveFilter(e.target.dataset.filter);
+                });
+            });
+
+            // Clickable Stat Cards Logic
+            statCards.forEach(card => {
+                card.addEventListener("click", () => {
+                    const filterType = card.getAttribute("data-filter");
+                    
+                    // Switch to Task Planner view tab automatically
+                    document.querySelectorAll(".tab-btn").forEach(t => t.classList.remove("active"));
+                    document.querySelectorAll(".view-content").forEach(v => v.classList.remove("active"));
+
+                    document.querySelector('[data-view="tasksView"]').classList.add("active");
+                    document.getElementById("tasksView").classList.add("active");
+
+                    // Apply filter
+                    setActiveFilter(filterType);
+                });
+            });
+        });
+
+        function setActiveFilter(filterName) {
+            currentFilter = filterName;
+            filterBtns.forEach(b => {
+                if (b.dataset.filter === filterName) {
+                    b.classList.add("active");
+                } else {
+                    b.classList.remove("active");
+                }
+            });
+            renderTasks();
+        }
+
+        // 1. Data Storage Handlers
+        function loadTasks() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                return stored ? JSON.parse(stored) : getSampleTasks();
+            } catch (e) {
+                return getSampleTasks();
+            }
+        }
+
+        function saveTasks() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        }
+
+        function getSampleTasks() {
+            const today = new Date().toISOString().split("T")[0];
+            return [
+                {
+                    id: "1",
+                    title: "Submit Literature Review Paper",
+                    description: "Final draft with APA citations for English class.",
+                    category: "Assignment",
+                    priority: "High",
+                    deadline: today,
+                    time: "23:59",
+                    completed: false,
+                    createdAt: Date.now()
+                },
+                {
+                    id: "2",
+                    title: "Midterm Physics Prep",
+                    description: "Review chapters 4 to 7 and complete practice problems.",
+                    category: "Exam",
+                    priority: "Medium",
+                    deadline: today,
+                    time: "14:00",
+                    completed: true,
+                    createdAt: Date.now() - 10000
+                }
+            ];
+        }
+
+        // 2. View Switcher Navigation
+        function setupTabNavigation() {
+            const tabs = document.querySelectorAll(".tab-btn");
+            const views = document.querySelectorAll(".view-content");
+
+            tabs.forEach(tab => {
+                tab.addEventListener("click", () => {
+                    tabs.forEach(t => t.classList.remove("active"));
+                    views.forEach(v => v.classList.remove("active"));
+
+                    tab.classList.add("active");
+                    const targetView = document.getElementById(tab.dataset.view);
+                    if (targetView) targetView.classList.add("active");
+
+                    if (tab.dataset.view === "dashboardView") {
+                        renderDashboardChart();
+                    }
+                });
+            });
+        }
+
+        function setupHeaderDate() {
+            const options = { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' };
+            document.getElementById("todayDate").textContent = new Date().toLocaleDateString('en-US', options);
+            document.getElementById("year").textContent = new Date().getFullYear();
+        }
+
+        // 3. Task Management (CRUD)
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const id = taskIdInput.value;
+            const taskData = {
+                id: id || Date.now().toString(),
+                title: taskTitleInput.value.trim(),
+                description: taskDescInput.value.trim(),
+                category: taskCategoryInput.value,
+                priority: taskPriorityInput.value,
+                deadline: taskDateInput.value,
+                time: taskTimeInput.value,
+                completed: false,
+                createdAt: id ? (tasks.find(t => t.id === id)?.createdAt || Date.now()) : Date.now()
+            };
+
+            if (id) {
+                const index = tasks.findIndex(t => t.id === id);
+                if (index !== -1) tasks[index] = { ...tasks[index], ...taskData };
+            } else {
+                tasks.push(taskData);
+            }
+
+            saveTasks();
+            resetForm();
+            renderApp();
+        }
+
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            taskIdInput.value = task.id;
+            taskTitleInput.value = task.title;
+            taskDescInput.value = task.description;
+            taskCategoryInput.value = task.category;
+            taskPriorityInput.value = task.priority;
+            taskDateInput.value = task.deadline;
+            taskTimeInput.value = task.time || "";
+
+            formHeading.textContent = "✎ Edit Task";
+            submitBtn.textContent = "Update Task";
+            cancelBtn.hidden = false;
+
+            // Switch view to planner if editing from dashboard
+            document.querySelector('[data-view="tasksView"]').click();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            renderApp();
+        }
+
+        function toggleTaskStatus(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasks();
+                renderApp();
+            }
+        }
+
+        function resetForm() {
+            taskIdInput.value = "";
+            taskForm.reset();
+            formHeading.textContent = "＋ Add New Task";
+            submitBtn.textContent = "Add Task";
+            cancelBtn.hidden = true;
+        }
+
+        // 4. Render Functions
+        function renderApp() {
+            updateStats();
+            renderTasks();
+            renderUpcomingDeadlines();
+            renderDashboardChart();
+        }
+
+        function isOverdue(task) {
+            if (task.completed || !task.deadline) return false;
+            const now = new Date();
+            const deadlineStr = task.time ? `${task.deadline}T${task.time}` : `${task.deadline}T23:59:59`;
+            return new Date(deadlineStr) < now;
+        }
+
+        function updateStats() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const overdue = tasks.filter(t => isOverdue(t)).length;
+            const pending = total - completed;
+
+            document.getElementById("totalCount").textContent = total;
+            document.getElementById("pendingCount").textContent = pending;
+            document.getElementById("completedCount").textContent = completed;
+            document.getElementById("overdueCount").textContent = overdue;
+        }
+
+        function renderTasks() {
+            let filtered = [...tasks];
+            const query = searchInput.value.toLowerCase().trim();
+
+            // Search Filter
+            if (query) {
+                filtered = filtered.filter(t => 
+                    t.title.toLowerCase().includes(query) || 
+                    t.description.toLowerCase().includes(query) ||
+                    t.category.toLowerCase().includes(query)
+                );
+            }
+
+            // Status Filter (triggered by clicks on cards or filter buttons)
+            if (currentFilter === "pending") filtered = filtered.filter(t => !t.completed && !isOverdue(t));
+            else if (currentFilter === "completed") filtered = filtered.filter(t => t.completed);
+            else if (currentFilter === "overdue") filtered = filtered.filter(t => isOverdue(t));
+
+            // Sorting
+            const sortVal = sortSelect.value;
+            filtered.sort((a, b) => {
+                if (sortVal === "deadline") return new Date(a.deadline) - new Date(b.deadline);
+                if (sortVal === "priority") {
+                    const map = { High: 3, Medium: 2, Low: 1 };
+                    return map[b.priority] - map[a.priority];
+                }
+                if (sortVal === "newest") return b.createdAt - a.createdAt;
+                if (sortVal === "oldest") return a.createdAt - b.createdAt;
+                if (sortVal === "title") return a.title.localeCompare(b.title);
+                return 0;
+            });
+
+            document.getElementById("visibleCount").textContent = `${filtered.length} task${filtered.length !== 1 ? 's' : ''}`;
+
+            if (filtered.length === 0) {
+                taskListEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3>No tasks found</h3>
+                        <p>Try adjusting your search or add a new task to get started.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            taskListEl.innerHTML = filtered.map(task => {
+                const overdue = isOverdue(task);
+                return `
+                    <div class="task-item ${task.completed ? 'completed' : ''}">
+                        <div class="task-top">
+                            <div class="task-title-row">
+                                <input 
+                                    type="checkbox" 
+                                    class="task-check" 
+                                    ${task.completed ? 'checked' : ''} 
+                                    onchange="toggleTaskStatus('${task.id}')"
+                                >
+                                <span class="task-title">${escapeHtml(task.title)}</span>
+                            </div>
+                            <div class="task-actions">
+                                <button class="icon-btn" onclick="editTask('${task.id}')" title="Edit">✎</button>
+                                <button class="icon-btn delete" onclick="deleteTask('${task.id}')" title="Delete">🗑</button>
+                            </div>
+                        </div>
+
+                        ${task.description ? `<p class="task-description">${escapeHtml(task.description)}</p>` : ''}
+
+                        <div class="task-meta" style="margin-top: ${task.description ? '0' : '8px'};">
+                            <span class="tag">${task.category}</span>
+                            <span class="tag priority-${task.priority}">${task.priority} Priority</span>
+                            <span class="tag ${overdue ? 'deadline-overdue' : ''}">
+                                📅 ${task.deadline} ${task.time ? '@ ' + task.time : ''} ${overdue ? '(Overdue)' : ''}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderUpcomingDeadlines() {
+            const listEl = document.getElementById("upcomingList");
+            const upcoming = tasks
+                .filter(t => !t.completed)
+                .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+                .slice(0, 5);
+
+            if (upcoming.length === 0) {
+                listEl.innerHTML = `<li class="upcoming-item"><span>All caught up! No upcoming tasks.</span></li>`;
+                return;
+            }
+
+            listEl.innerHTML = upcoming.map(task => `
+                <li class="upcoming-item">
+                    <div>
+                        <strong>${escapeHtml(task.title)}</strong>
+                        <div style="font-size: 11px; color: var(--muted);">${task.category}</div>
+                    </div>
+                    <span class="upcoming-badge">${task.deadline}</span>
+                </li>
+            `).join("");
+        }
+
+        // 5. Chart Visuals
+        function renderDashboardChart() {
+            const ctx = document.getElementById('categoryChart')?.getContext('2d');
+            if (!ctx) return;
+
+            const categories = ["Assignment", "Exam", "Project", "Study", "Personal", "Other"];
+            const counts = categories.map(cat => tasks.filter(t => t.category === cat).length);
+
+            if (categoryChartInstance) {
+                categoryChartInstance.destroy();
+            }
+
+            categoryChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: [
+                            '#4a3267',
+                            '#d8638a',
+                            '#f7b9c4',
+                            '#c6bade',
+                            '#896c9c',
+                            '#e0a3b8'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        }
+
+        // Helper Utility
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, match => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[match]);
+        }
+    </script>
+</body>
+</html>
